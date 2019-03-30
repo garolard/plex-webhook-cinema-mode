@@ -1,0 +1,16 @@
+{
+  "name": "ikea-api",
+  "version": "0.0.1",
+  "description": "Servicio para controlar bombillas de IKEA",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Gabriel Ferreiro",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.16.4",
+    "multer": "^1.4.1",
+    "node-tradfri-client": "^1.5.0"
+  }
+}
