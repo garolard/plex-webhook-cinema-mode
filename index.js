@@ -65,7 +65,9 @@ app.post('/', upload.single('thumb'), (req, res) => {
     return;
   }
 
-  const group = getGroupByName(plexPayload, groups);
+  const group = getGroupByName(config.group, groups);
+
+  console.log(JSON.stringify(group));
 
   switch (plexPayload.event) {
     case EventTypes.PLAY:

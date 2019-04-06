@@ -33,11 +33,12 @@ function mustHandleEvent({ Account: { title }, Metadata: { type } }, user) {
 
 function getGroupByName(groupName, groups) {
   const ids = Object.keys(groups);
+
   if (ids.length === 0) {
     return null;
   }
 
-  return ids.filter(id => groups[id].name === groupName).map(id => groups[id]);
+  return ids.filter(id => groups[id].name === groupName).map(id => groups[id])[0];
 }
 
 module.exports = {
