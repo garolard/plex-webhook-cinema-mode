@@ -1,5 +1,9 @@
-function mustHandleEvent({ Account: { title }, Metadata: { type } }, user) {
+function mustHandleEvent({ Account: { title }, Metadata: { type }, Player: { uuid } }, user, playerUuid) {
   if (title !== user) {
+    return false;
+  }
+
+  if (uuid !== playerUuid) {
     return false;
   }
 

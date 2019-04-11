@@ -12,6 +12,14 @@ function validate(config) {
   if (!config.group || config.group === '') {
     throw new Error('Es obligatorio indicar la propiedad "group" en el fichero de configuración config.json.');
   }
+
+  if (!config.user || config.user === '') {
+    throw new Error('Es obligatorio indicar la propiedad "user" en el fichero de configuración config.json.');
+  }
+
+  if (!config.player || config.player === '') {
+    throw new Error('Es obligatorio indicar la propiedad "player" en el fichero de configuración config.json.');
+  }
 }
 
 function readConfig() {

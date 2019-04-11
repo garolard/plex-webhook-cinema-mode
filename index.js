@@ -60,14 +60,12 @@ app.post('/', upload.single('thumb'), (req, res) => {
     console.log(plexPayload);
   }
 
-  if (!mustHandleEvent(plexPayload, config.user)) {
+  if (!mustHandleEvent(plexPayload, config.user, config.player)) {
     res.sendStatus(200);
     return;
   }
 
   const group = getGroupByName(config.group, groups);
-
-  console.log(JSON.stringify(group));
 
   switch (plexPayload.event) {
     case EventTypes.PLAY:
