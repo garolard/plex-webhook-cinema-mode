@@ -1,3 +1,4 @@
+const os = require('os');
 const express = require('express');
 const multer = require('multer');
 const { TradfriClient } = require('node-tradfri-client');
@@ -15,7 +16,7 @@ const EventTypes = {
 
 // VARIABLES DE APLICACION
 const config = readConfig();
-const upload = multer({ dest: 'C:/Windows/Temp/' });
+const upload = multer({ dest: os.tmpdir() });
 const app = express();
 const port = config.port || 3000;
 const groups = {};
