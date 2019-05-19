@@ -92,19 +92,19 @@ app.route('/list-groups')
     res.sendStatus(200);
   });
 
-// app.route('/group-on')
-//     .get((req, res) => {
-//         const group = getGroupByName(config.group); // Sacar a configuracion
-//         tradfriClient.operateGroup(group, { onOff: true, dimmer: 100 });
-//         res.sendStatus(200);
-//     });
+app.route('/group-on')
+    .get((req, res) => {
+        const group = getGroupByName(config.group); // Sacar a configuracion
+        tradfriClient.operateGroup(group, { onOff: true, dimmer: 100 });
+        res.sendStatus(200);
+    });
 
-// app.route('/group-off')
-//     .get((req, res) => {
-//         const group = getGroupByName(config.group);
-//         tradfriClient.operateGroup(group, { onOff: false });
-//         res.sendStatus(200);
-//     });
+app.route('/group-off')
+    .get((req, res) => {
+        const group = getGroupByName(config.group);
+        tradfriClient.operateGroup(group, { onOff: false });
+        res.sendStatus(200);
+    });
 
 app.route('/finish')
   .get((req, res) => {
