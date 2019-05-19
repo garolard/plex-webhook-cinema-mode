@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 WorkingDirectory=/home/pi/node-apps/plex-webhook-cinema-mode
-ExecStart=/usr/bin/npm start
+ExecStart=/usr/bin/node index.js
 Restart=on-failure
 User=pi
 
