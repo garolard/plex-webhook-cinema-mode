@@ -1,7 +1,7 @@
 const os = require('os');
 const express = require('express');
 const multer = require('multer');
-const { TradfriClient } = require('node-tradfri-client');
+const { TradfriClient, TradfriError, TradfriErrorCodes } = require('node-tradfri-client');
 
 const { readConfig } = require('./config');
 const { mustHandleEvent, getGroupByName } = require('./utils');
@@ -26,7 +26,7 @@ function onGroupUpdated(group) {
   groups[group.instanceId] = group;
 }
 
-const connect = client => ({ identity, psk }) => client.connect(identity, psk);
+const connect = client => ({identity, psk}) => client.connect(identity, psk);
 
 const registerEventsFor = client => () => {
   client
@@ -40,13 +40,43 @@ const registerEventsFor = client => () => {
 // CONEXIÓN AL HUB
 const tradfriClient = new TradfriClient(config.hubIp);
 
+// async function init(tradfriClient) {
+//   try {
+//     const { identity, psk } = await tradfriClient.authenticate(config.hubSecurityCode);
+//     await tradfriClient.connect(identity, psk);
+//     await registerEventsFor(tradfriClient);
+//     console.log('Cliente iniciado');
+//   } catch (e) {
+//     handleTradfriException(e);
+//     tradfriClient.destroy();
+//     process.exit(1);
+//   }
+// }
+
+function handleTradfriException(e) {
+  if (e instanceof TradfriError) {
+    switch (e.code) {
+      case TradfriErrorCodes.ConnectionTimedOut:
+        console.error('Timeout de conexión: ', e.message);
+        break;
+      case TradfriErrorCodes.AuthenticationFailed:
+        console.error('Autenticación fallida: ', e.message);
+        break;
+      case TradfriErrorCodes.ConnectionFailed:
+        console.error('Conexión fallida: ', e.message);
+        break;
+      default:
+        console.error('No se pudo realizar la conexión del cliente a la pasarela: ', e.message);
+    }
+  } else {
+    console.error('Error desconocido: ', e);
+  }
+}
+
 tradfriClient.authenticate(config.hubSecurityCode)
   .then(connect(tradfriClient))
   .then(registerEventsFor(tradfriClient))
-  .catch((reason) => {
-    tradfriClient.destroy();
-    throw new Error(reason);
-  });
+  .catch(handleTradfriException);
 
 
 // ENDPOINTS DEL SERVICIO
