@@ -1,10 +1,10 @@
 const os = require('os');
 const express = require('express');
 const multer = require('multer');
-const { TradfriClient, TradfriError, TradfriErrorCodes } = require('node-tradfri-client');
+const { TradfriClient } = require('node-tradfri-client');
 
 const { readConfig } = require('./config');
-const { mustHandleEvent, getGroupByName } = require('./utils');
+const { mustHandleEvent, getGroupByName, handleTradfriException } = require('./utils');
 const Handlers = require('./handlers');
 
 const EventTypes = {
@@ -29,6 +29,7 @@ function onGroupUpdated(group) {
 const connect = client => ({identity, psk}) => client.connect(identity, psk);
 
 const registerEventsFor = client => () => {
+  console.log('conectando');
   client
     .on('group updated', onGroupUpdated)
     .observeGroupsAndScenes();
@@ -40,43 +41,31 @@ const registerEventsFor = client => () => {
 // CONEXIÓN AL HUB
 const tradfriClient = new TradfriClient(config.hubIp);
 
-// async function init(tradfriClient) {
-//   try {
-//     const { identity, psk } = await tradfriClient.authenticate(config.hubSecurityCode);
-//     await tradfriClient.connect(identity, psk);
-//     await registerEventsFor(tradfriClient);
-//     console.log('Cliente iniciado');
-//   } catch (e) {
-//     handleTradfriException(e);
-//     tradfriClient.destroy();
-//     process.exit(1);
-//   }
-// }
+const init = async () => {
+  try {
+    const { identity, psk } = await tradfriClient.authenticate(config.hubSecurityCode);
+    await tradfriClient.connect(identity, psk);
 
-function handleTradfriException(e) {
-  if (e instanceof TradfriError) {
-    switch (e.code) {
-      case TradfriErrorCodes.ConnectionTimedOut:
-        console.error('Timeout de conexión: ', e.message);
-        break;
-      case TradfriErrorCodes.AuthenticationFailed:
-        console.error('Autenticación fallida: ', e.message);
-        break;
-      case TradfriErrorCodes.ConnectionFailed:
-        console.error('Conexión fallida: ', e.message);
-        break;
-      default:
-        console.error('No se pudo realizar la conexión del cliente a la pasarela: ', e.message);
-    }
-  } else {
-    console.error('Error desconocido: ', e);
+    tradfriClient
+      .on('group updated', onGroupUpdated)
+      .observeGroupsAndScenes();
+
+    app.listen(port);
+    console.log('Escuchando en puerto ', port);
+
+  } catch (e) {
+    handleTradfriException(e);
+    tradfriClient.destroy();
+    process.exit(1);
   }
-}
+};
 
-tradfriClient.authenticate(config.hubSecurityCode)
-  .then(connect(tradfriClient))
-  .then(registerEventsFor(tradfriClient))
-  .catch(handleTradfriException);
+// tradfriClient.authenticate(config.hubSecurityCode)
+//   .then(connect(tradfriClient))
+//   .then(registerEventsFor(tradfriClient))
+//   .catch(e => {
+    
+//   });
 
 
 // ENDPOINTS DEL SERVICIO
@@ -143,3 +132,5 @@ app.route('/finish')
     res.sendStatus(200);
     process.exit(0);
   });
+
+init().then(_ => {});

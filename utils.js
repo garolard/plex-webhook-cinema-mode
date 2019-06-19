@@ -1,3 +1,5 @@
+const { TradfriError, TradfriErrorCodes } = require('node-tradfri-client');
+
 function mustHandleEvent({ Account: { title }, Metadata: { type }, Player: { uuid } }, user, playerUuid) {
   if (title !== user) {
     return false;
@@ -45,7 +47,28 @@ function getGroupByName(groupName, groups) {
   return ids.filter(id => groups[id].name === groupName).map(id => groups[id])[0];
 }
 
+function handleTradfriException(e) {
+  if (e instanceof TradfriError) {
+    switch (e.code) {
+      case TradfriErrorCodes.ConnectionTimedOut:
+        console.error('Timeout de conexión: ', e.message);
+        break;
+      case TradfriErrorCodes.AuthenticationFailed:
+        console.error('Autenticación fallida: ', e.message);
+        break;
+      case TradfriErrorCodes.ConnectionFailed:
+        console.error('Conexión fallida: ', e.message);
+        break;
+      default:
+        console.error('No se pudo realizar la conexión del cliente a la pasarela: ', e.message);
+    }
+  } else {
+    console.error('Error desconocido: ', e);
+  }
+}
+
 module.exports = {
   mustHandleEvent,
   getGroupByName,
+  handleTradfriException
 };
