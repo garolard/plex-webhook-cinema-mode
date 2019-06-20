@@ -26,18 +26,6 @@ function onGroupUpdated(group) {
   groups[group.instanceId] = group;
 }
 
-// const connect = client => ({identity, psk}) => client.connect(identity, psk);
-
-// const registerEventsFor = client => () => {
-//   console.log('conectando');
-//   client
-//     .on('group updated', onGroupUpdated)
-//     .observeGroupsAndScenes();
-
-//   app.listen(port);
-//   console.log('Escuchando en puerto ', port);
-// };
-
 
 const init = async () => {
 
@@ -72,15 +60,7 @@ const init = async () => {
   }
 };
 
-// tradfriClient.authenticate(config.hubSecurityCode)
-//   .then(connect(tradfriClient))
-//   .then(registerEventsFor(tradfriClient))
-//   .catch(e => {
-    
-//   });
 
-
-// ENDPOINTS DEL SERVICIO
 function doNothingWith(event) {
   console.log('Recibido evento no manejado:', event);
 }
