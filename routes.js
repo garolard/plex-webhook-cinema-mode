@@ -20,7 +20,10 @@ const routes = [
         path: '/group-on',
         method: 'get',
         handler: function(_req, res) {
-
+            // Inyectar cliente
+            const group = GroupsRepository.findByName(config.group); // Sacar a configuracion
+            client.operateGroup(group, { onOff: true, dimmer: 100 });
+            res.sendStatus(200);
         }
     },
     {

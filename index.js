@@ -4,10 +4,11 @@ const multer = require('multer');
 const { discoverGateway, TradfriClient } = require('node-tradfri-client');
 
 const GroupsRepository = require('./groupsRepository');
+const IdentityRepository = require('./identityRepository');
+const Handlers = require('./handlers');
 const { readConfig } = require('./config');
 const { addRoutes, mustHandleEvent, handleTradfriException } = require('./utils');
 const { routes } = require('./routes');
-const Handlers = require('./handlers');
 
 const EventTypes = {
   PLAY: 'media.play',
@@ -29,14 +30,17 @@ const init = async () => {
   try {
     const discoveredGateway = await discoverGateway();
 
-    if (discoveredGateway !== null)
+    if (discoveredGateway !== null) {
+      client = new TradfriClient(discoveredGateway.addresses[0]);
       console.log(`Pasarela descubierta: ${discoveredGateway.name} con IP ${discoveredGateway.addresses[0]}`);
-    else
+    } else {
+      client = new TradfriClient(config.hubIp);
       console.log(`Ninguna pasarela descubierta, intentando conexión a IP ${config.hubIp} de config.json`);
+    }
 
-    client = new TradfriClient(discoveredGateway === null ? config.hubIp : discoveredGateway.addresses[0]);
-
+    const gatewayIp = discoveredGateway !== null ? discoveredGateway.addresses[0] : config.hubIp;
     const { identity, psk } = await client.authenticate(config.hubSecurityCode);
+
     await client.connect(identity, psk);
 
     client
@@ -48,6 +52,9 @@ const init = async () => {
 
     app.listen(port);
     console.log('Escuchando en puerto ', port);
+
+    IdentityRepository.saveIdentity({ identity, psk, gatewayIp });
+    client.destroy();
 
   } catch (e) {
     handleTradfriException(e);
