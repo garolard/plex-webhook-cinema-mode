@@ -37,16 +37,6 @@ function mustHandleEvent({ Account: { title }, Metadata: { type }, Player: { uui
   return true;
 }
 
-function getGroupByName(groupName, groups) {
-  const ids = Object.keys(groups);
-
-  if (ids.length === 0) {
-    return null;
-  }
-
-  return ids.filter(id => groups[id].name === groupName).map(id => groups[id])[0];
-}
-
 function handleTradfriException(e) {
   if (e instanceof TradfriError) {
     switch (e.code) {
@@ -67,8 +57,15 @@ function handleTradfriException(e) {
   }
 }
 
+function addRoutes(app, routes) {
+  for (route of routes) {
+    const { method, path, handler } = route;
+    app[method](path, handler);
+  }
+}
+
 module.exports = {
   mustHandleEvent,
-  getGroupByName,
-  handleTradfriException
+  handleTradfriException,
+  addRoutes
 };

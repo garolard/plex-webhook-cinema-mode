@@ -5,7 +5,8 @@ const { discoverGateway, TradfriClient } = require('node-tradfri-client');
 
 const GroupsRepository = require('./groupsRepository');
 const { readConfig } = require('./config');
-const { mustHandleEvent, handleTradfriException } = require('./utils');
+const { addRoutes, mustHandleEvent, handleTradfriException } = require('./utils');
+const { routes } = require('./routes');
 const Handlers = require('./handlers');
 
 const EventTypes = {
@@ -42,7 +43,8 @@ const init = async () => {
       .on('group updated', GroupsRepository.addOrUpdateGroup)
       .observeGroupsAndScenes();
 
-    setHandlers(app, client);
+    //setHandlers(app, client);
+    addRoutes(app, routes);
 
     app.listen(port);
     console.log('Escuchando en puerto ', port);
@@ -92,12 +94,6 @@ function setHandlers(app, client) {
   
     res.sendStatus(200);
   });
-  
-  app.route('/list-groups')
-    .get((req, res) => {
-      GroupsRepository.findAll().map(group => console.log(group.name));
-      res.sendStatus(200);
-    });
   
   app.route('/group-on')
       .get((req, res) => {

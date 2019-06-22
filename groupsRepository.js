@@ -24,7 +24,7 @@ function findByName(groupName) {
 }
 
 module.exports = {
-    addOrUpdateGroup: addOrUpdateGroup,
-    findAll: findAll,
-    findByName: findByName
+    addOrUpdateGroup,
+    findAll,
+    findByName
 };
