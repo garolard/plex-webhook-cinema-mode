@@ -3,8 +3,9 @@ const express = require('express');
 const multer = require('multer');
 const { discoverGateway, TradfriClient } = require('node-tradfri-client');
 
+const GroupsRepository = require('./groupsRepository');
 const { readConfig } = require('./config');
-const { mustHandleEvent, getGroupByName, handleTradfriException } = require('./utils');
+const { mustHandleEvent, handleTradfriException } = require('./utils');
 const Handlers = require('./handlers');
 
 const EventTypes = {
@@ -19,13 +20,6 @@ const config = readConfig();
 const upload = multer({ dest: os.tmpdir() });
 const app = express();
 const port = config.port || 3000;
-const groups = {};
-
-// MÉTODOS PARA CONECTARSE AL HUB Y REGISTRAR LOS EVENTOS DEL MISMO
-function onGroupUpdated(group) {
-  groups[group.instanceId] = group;
-}
-
 
 const init = async () => {
 
@@ -45,7 +39,7 @@ const init = async () => {
     await client.connect(identity, psk);
 
     client
-      .on('group updated', onGroupUpdated)
+      .on('group updated', GroupsRepository.addOrUpdateGroup)
       .observeGroupsAndScenes();
 
     setHandlers(app, client);
@@ -79,7 +73,7 @@ function setHandlers(app, client) {
       return;
     }
   
-    const group = getGroupByName(config.group, groups);
+    const group = GroupsRepository.findByName(config.group);
   
     switch (plexPayload.event) {
       case EventTypes.PLAY:
@@ -101,21 +95,20 @@ function setHandlers(app, client) {
   
   app.route('/list-groups')
     .get((req, res) => {
-      const ids = Object.keys(groups);
-      ids.map(id => console.log(groups[id].name));
+      GroupsRepository.findAll().map(group => console.log(group.name));
       res.sendStatus(200);
     });
   
   app.route('/group-on')
       .get((req, res) => {
-          const group = getGroupByName(config.group, groups); // Sacar a configuracion
+          const group = GroupsRepository.findByName(config.group); // Sacar a configuracion
           client.operateGroup(group, { onOff: true, dimmer: 100 });
           res.sendStatus(200);
       });
   
   app.route('/group-off')
       .get((req, res) => {
-          const group = getGroupByName(config.group, groups);
+          const group = GroupsRepository.findByName(config.group);
           client.operateGroup(group, { onOff: false });
           res.sendStatus(200);
       });
