@@ -1,13 +1,13 @@
 const os = require('os');
 const express = require('express');
 const multer = require('multer');
-const { discoverGateway, TradfriClient } = require('node-tradfri-client');
+const { discoverGateway } = require('node-tradfri-client');
 
 const GroupsRepository = require('./groupsRepository');
-const IdentityRepository = require('./identityRepository');
 const Handlers = require('./handlers');
+const Operator = require('./clientOperator');
 const { readConfig } = require('./config');
-const { addRoutes, mustHandleEvent, handleTradfriException } = require('./utils');
+const { addRoutes, mustHandleEvent } = require('./utils');
 const { routes } = require('./routes');
 
 const EventTypes = {
@@ -25,42 +25,26 @@ const port = config.port || 3000;
 
 const init = async () => {
 
-  let client = null;
+  const newGateway = await discoverGateway();
 
-  try {
-    const discoveredGateway = await discoverGateway();
+  if (newGateway !== null) {
+    console.log(`Pasarela descubierta: ${newGateway.name} con IP ${newGateway.addresses[0]}`);
+    await Operator.initClient(newGateway.addresses[0], config.hubSecurityCode);
+  } else {
+    console.log(`Ninguna pasarela descubierta, intentando conexión a IP ${config.hubIp} de config.json`);
+    await Operator.initClient(config.hubIp, config.hubSecurityCode);
+  }
 
-    if (discoveredGateway !== null) {
-      client = new TradfriClient(discoveredGateway.addresses[0]);
-      console.log(`Pasarela descubierta: ${discoveredGateway.name} con IP ${discoveredGateway.addresses[0]}`);
-    } else {
-      client = new TradfriClient(config.hubIp);
-      console.log(`Ninguna pasarela descubierta, intentando conexión a IP ${config.hubIp} de config.json`);
-    }
-
-    const gatewayIp = discoveredGateway !== null ? discoveredGateway.addresses[0] : config.hubIp;
-    const { identity, psk } = await client.authenticate(config.hubSecurityCode);
-
-    await client.connect(identity, psk);
-
+  await Operator.doWithClient(client => {
     client
       .on('group updated', GroupsRepository.addOrUpdateGroup)
       .observeGroupsAndScenes();
+  });
 
-    //setHandlers(app, client);
-    addRoutes(app, routes);
+  addRoutes(app, routes);
 
-    app.listen(port);
-    console.log('Escuchando en puerto ', port);
-
-    IdentityRepository.saveIdentity({ identity, psk, gatewayIp });
-    client.destroy();
-
-  } catch (e) {
-    handleTradfriException(e);
-    client && client.destroy();
-    process.exit(1);
-  }
+  app.listen(port);
+  console.log('Escuchando en puerto ', port);
 };
 
 
@@ -126,4 +110,4 @@ function setHandlers(app, client) {
 }
 
 
-init().then(_ => {});
+Promise.resolve(init());
