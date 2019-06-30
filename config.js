@@ -1,4 +1,6 @@
-const { readFileSync } = require('fs');
+const { existsSync, readFileSync } = require('fs');
+
+const CONFIG_FILE_PATH = './config.json';
 
 function validate(config) {
   if (!config.hubIp || config.hubIp === '') {
@@ -23,9 +25,13 @@ function validate(config) {
 }
 
 function readConfig() {
-  console.log('Leyendo fichero de configuracion');
-  const configContent = readFileSync('config.json');
-  const config = JSON.parse(configContent);
+  const existsConfig = existsSync(CONFIG_FILE_PATH);
+  if (!existsConfig)
+    throw new Error(`No se encuentra el fichero de configuración '${CONFIG_FILE_PATH}'.`);
+
+  const content = readFileSync(CONFIG_FILE_PATH);
+  const config = JSON.parse(content);
+
   validate(config);
 
   return config;

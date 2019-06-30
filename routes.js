@@ -2,6 +2,7 @@ const GroupsRepository = require('./groupsRepository');
 const Operator = require('./clientOperator');
 
 const { asyncHandler } = require('./utils');
+const { readConfig } = require('./config');
 
 const routes = [
     {
@@ -27,7 +28,8 @@ const routes = [
         path: '/group-on',
         method: 'get',
         handler: asyncHandler(async function(_req, res) {
-            const group = GroupsRepository.findByName('Salón'); // Sacar a configuracion
+            const config = readConfig();
+            const group = GroupsRepository.findByName(config.group);
             await Operator.doWithClient(async client => await client.operateGroup(group, { onOff: true, dimmer: 100 }));
             res.sendStatus(200);
         })
@@ -36,7 +38,8 @@ const routes = [
         path: '/group-off',
         method: 'get',
         handler: asyncHandler(async function(_req, res) {
-            const group = GroupsRepository.findByName('Salón'); // Sacar a configuracion
+            const config = readConfig();
+            const group = GroupsRepository.findByName(config.group);
             await Operator.doWithClient(async client => await client.operateGroup(group, { onOff: false }));
             res.sendStatus(200);
         })
@@ -54,7 +57,8 @@ const routes = [
         path: '/micuarto',
         method: 'get',
         handler: asyncHandler(async function(_req, res) {
-            const group = GroupsRepository.findByName('Cuarto de Gabi');
+            const config = readConfig();
+            const group = GroupsRepository.findByName(config.group);
             await Operator.doWithClient(async client => await client.operateGroup(group, { onOff: !group.onOff }));
             res.status(200).send(`${group.onOff ? 'Apagando' : 'Encendiendo'} ${group.name}`);
         })
