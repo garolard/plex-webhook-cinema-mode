@@ -59,8 +59,10 @@ function handleTradfriException(e) {
 
 function addRoutes(app, routes) {
   for (route of routes) {
-    const { method, path, handler } = route;
-    app[method](path, handler);
+    const { method, path, handler, next } = route;
+    next 
+      ? app[method](path, handler, next)
+      : app[method](path, handler);
   }
 }
 
@@ -70,9 +72,14 @@ const asyncHandler = fn => (req, res, next) => {
       .catch(next);
 }
 
+function doNothingWith(event) {
+  console.log('Recibido evento no manejado:', event);
+}
+
 module.exports = {
   mustHandleEvent,
   handleTradfriException,
   addRoutes,
-  asyncHandler
+  asyncHandler,
+  doNothingWith
 };
